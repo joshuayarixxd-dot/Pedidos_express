@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sistema Coyotes - Tepic</title>
+    <!-- Librerías para PDF y para convertir a Imagen (html2canvas) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        body { 
+            font-family: 'Arial', sans-serif; 
+            background-color: #e9ecef; 
+            margin: 0; 
+            padding: 0;
+            padding-bottom: 20px;
+        }
+
+        /* PANTALLA DE LOGIN */
+        #login-section {
+            background-color: #ffffff;
+            max-width: 400px;
+            margin: 60px auto;
+            padding: 30px 20px;
+            text-align: center;
+            border: 3px solid #000;
+            border-radius: 10px;
+            box-shadow: 0px 8px 15px rgba(0,0,0,0.2);
+            width: 90%;
+            box-sizing: border-box;
+        }
+        #login-section h2 { margin-top: 0; text-transform: uppercase; }
+        #login-section input[type="text"],
+        #login-section input[type="password"] {
+            width: 90%;
+            padding: 12px;
+            margin: 10px 0;
+            font-size: 16px;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            text-align: center;
+            box-sizing: border-box;
+        }
+        #login-section input:focus { border-color: #000; outline: none; }
+        
+        .show-pass-container {
+            text-align: left;
+            width: 90%;
+            margin: 0 auto 10px auto;
+            font-size: 13px;
+            color: #555;
+            display: flex;
+            align-items: center;
+        }
+        .show-pass-container input[type="checkbox"] { margin-right: 8px; width: 18px; height: 18px; cursor: pointer; }
+        .show-pass-container label { cursor: pointer; font-weight: bold; }
+
+        #login-section button {
+            background-color: #000;
+            color: #fff;
+            border: none;
+            padding: 14px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            border-radius: 5px;
+            width: 90%;
+        }
+
+        /* NAVEGACIÓN Y BUSCADOR */
+        #app-section { display: none; }
+
+        .tabs-container {
+            display: flex;
+            background-color: #000;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0px 4px 6px rgba(0,0,0,0.3);
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+            background: #333;
+            border: none;
+            cursor: pointer;
+            outline: none;
+            transition: 0.3s;
+        }
+        .tab-btn.activa { background: #d1121c; color: #fff; border-bottom: 4px solid #f7b512; }
+
+        .buscador-container {
+            padding: 15px;
+            background-color: #333;
+            text-align: center;
+        }
+        .buscador-container input {
+            width: 90%;
+            max-width: 600px;
+            padding: 10px 15px;
+            font-size: 16px;
+            border-radius: 20px;
+            border: 2px solid #f7b512;
+            outline: none;
+            text-align: center;
+        }
+
+        /* DISEÑO DE LAS HOJAS (TAMAÑO ORIGINAL 850PX SIN BORDES FEOS) */
+        .tab-content { display: none; padding: 10px; }
+        .tab-content.activa { display: block; }
+
+        .hoja-imprimible {
+            background-color: #ffffff;
+            max-width: 850px;
+            margin: 0 auto;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        /* RECUADRO EXCLUSIVO PARA SEMANA EN CABECERA */
+        .caja-semana-input {
+            width: 110px;
+            padding: 3px 6px;
+            font-size: 11px;
+            font-weight: 900;
+            text-align: center;
+            border: 2px solid #000000;
+            border-radius: 4px;
+            background-color: #fffde7;
+            color: #000000;
+            outline: none;
+        }
+        .caja-semana-input:focus {
+            background-color: #fff9c4;
+            box-shadow: 0 0 0 2px rgba(209, 18, 28, 0.3);
+        }
+        .caja-semana-input::placeholder {
+            color: #666666;
+            font-weight: normal;
+            font-size: 10px;
+        }
+
+        .product-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+        }
+        .product-table th {
+            background-color: #000000;
+            color: #ffffff;
+            padding: 7px 6px;
+            font-size: 13px;
+            font-weight: bold;
+            text-transform: uppercase;
+            border: none;
+        }
+        /* COLUMNAS REACOMODADAS HACIA EL CENTRO */
+        .product-table th.col-num { width: 5%; text-align: left; padding-left: 8px; }
+        .product-table th.col-prod { width: 45%; text-align: left; }
+        .product-table th.col-cajas { width: 16%; text-align: center; }
+        .product-table th.col-precio { width: 16%; text-align: center; }
+        .product-table th.col-total { width: 18%; text-align: center; padding-right: 8px; }
+
+        .product-table td {
+            border: none;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 4px 6px;
+            font-size: 13px;
+            font-weight: 900;
+            color: #000;
+            vertical-align: middle;
+        }
+        
+        .product-table td.col-num { text-align: left; padding-left: 8px; }
+        .product-table td.col-prod { text-align: left; }
+        .product-table td.col-cajas { text-align: center; }
+        .product-table td.col-precio { text-align: center; }
+        .product-table td.col-total { text-align: center; padding-right: 8px; }
+
+        .product-table tr:nth-child(even) { background-color: #f5f5f5; }
+        .product-table tr:nth-child(odd) { background-color: #ffffff; }
+
+        .fila-seleccionada, 
+        .product-table tr.fila-seleccionada td {
+            background-color: #fff9c4 !important;
+        }
+
+        /* Inputs de productos: SIN recuadro fijo, limpios */
+        input[type="number"] {
+            width: 100%;
+            max-width: 50px;
+            padding: 3px;
+            font-size: 13px;
+            font-weight: 900;
+            text-align: center;
+            border: 1px solid transparent;
+            background-color: transparent;
+            outline: none;
+            color: #000;
+        }
+        input[type="number"]:focus, input[type="number"]:hover { 
+            border: 1px solid #999; 
+            background-color: #fff;
+            border-radius: 4px;
+        }
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+        .fila-totales {
+            background-color: #000000 !important;
+            color: #ffffff;
+            font-weight: 900;
+            font-size: 15px;
+            border: none;
+        }
+        .fila-totales td {
+            padding: 10px 8px;
+            color: #ffffff !important;
+            border: none;
+        }
+        .tot-valor-final {
+            color: #ffca28 !important;
+            text-align: center !important;
+        }
+
+        .notas-area { 
+            padding: 10px; 
+            background-color: #fff; 
+        }
+        .notas-area textarea {
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px dashed #ccc;
+            outline: none;
+            font-size: 13px;
+            font-weight: 900;
+            color: #000;
+            resize: none;
+            height: 65px;
+            padding: 10px;
+            font-family: 'Arial', sans-serif;
+            background-color: #fafafa;
+        }
+        
+        .notas-renderizadas {
+            font-size: 13px;
+            font-weight: 900;
+            color: #000;
+            white-space: pre-wrap;
+            padding: 10px;
+            line-height: 1.4;
+            background-color: #fff;
+        }
+
+        .botones-container { max-width: 850px; margin: 15px auto; text-align: center; }
+        .btn {
+            background-color: #000000; color: #ffffff; border: none; padding: 14px 10px;
+            font-size: 15px; font-weight: bold; cursor: pointer; margin: 5px; border-radius: 6px;
+            width: calc(100% - 10px); box-sizing: border-box;
+        }
+        .btn-verde { background-color: #25D366; color: white; }
+        .btn-rojo { background-color: #d1121c; color: white; }
+        .btn-azul { background-color: #007bff; color: white; }
+        .btn-blanco { background-color: #ffffff; color: #000; border: 2px solid #000; }
+        .btn-historial { background-color: #ff9800; color: white; }
+
+        .modal {
+            display: none; position: fixed; z-index: 2000; left: 0; top: 0;
+            width: 100%; height: 100%; background-color: rgba(0,0,0,0.85);
+            overflow-y: auto; padding: 20px; box-sizing: border-box;
+        }
+        .modal-contenido {
+            background-color: #fff; max-width: 500px; margin: 20px auto;
+            padding: 20px; border-radius: 10px; text-align: center; position: relative;
+        }
+        .modal-contenido h3 { color: #25D366; margin-top: 0; font-size: 20px; }
+        .modal-contenido img { width: 100%; max-width: 280px; border: 2px solid #ddd; border-radius: 6px; margin: 10px 0; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .paso-tutorial { display: none; }
+        .paso-tutorial.activo { display: block; }
+        .btn-modal-acc { background-color: #25D366; color: white; border: none; padding: 12px 20px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: 10px; width: 100%; }
+        .btn-cerrar-sencillo { background-color: #6c757d; color: white; border: none; padding: 8px 15px; font-size: 13px; border-radius: 5px; cursor: pointer; margin-top: 10px; }
+
+        @media (min-width: 600px) { .btn { width: auto; min-width: 180px; } }
+    </style>
+</head>
+<body>
+
+    <!-- PANTALLA DE LOGIN -->
+    <div id="login-section">
+        <h2>Acceso al Sistema</h2>
+        <p style="font-size: 13px; color: #666; margin-bottom: 15px;">Ingresa tus credenciales</p>
+        <input type="text" id="username" placeholder="Usuario">
+        <input type="password" id="password" placeholder="Contraseña">
+        <div class="show-pass-container">
+            <input type="checkbox" id="chk-mostrar" onclick="toggleContrasena()">
+            <label for="chk-mostrar">Mostrar contraseña</label>
+        </div>
+        <button onclick="verificarLogin()">Entrar</button>
+
+        <div class="btn-activar-box" style="margin-top: 20px; padding-top: 15px; border-top: 2px dashed #ddd; text-align: left; font-size: 13px;">
+            <b>¿Dispositivo sin registrar?</b><br>
+            <span style="font-size: 12px; color: #555;">Tu Código de Dispositivo es: <b id="lbl-id-equipo" style="color:#d1121c;">Cargando...</b></span><br><br>
+            <input type="text" id="input-clave-activacion" placeholder="Ingresa tu Llave de Activación" style="font-size: 13px; padding: 8px; width: 90%;">
+            <button onclick="activarDispositivoCliente()" style="background-color: #25D366; width: 90%; padding: 10px; font-size: 13px; margin-top: 5px;">Activar Licencia</button>
+        </div>
+    </div>
+
+    <!-- APLICACIÓN PRINCIPAL -->
+    <div id="app-section">
+        
+        <div class="tabs-container">
+            <button class="tab-btn activa" id="btn-tab-pedidos" onclick="cambiarPestana('pedidos')">📦 PEDIDOS</button>
+            <button class="tab-btn" id="btn-tab-devoluciones" onclick="cambiarPestana('devoluciones')">🔙 DEVOLUCIONES</button>
+        </div>
+
+        <!-- SECCIÓN 1: PEDIDOS -->
+        <div id="seccion-pedidos" class="tab-content activa">
+            <div class="buscador-container">
+                <input type="text" id="busqueda-pedidos" placeholder="🔍 Buscar producto o gramos..." onkeyup="filtrarTabla('busqueda-pedidos', 'list-pedidos')">
+            </div>
+
+            <div id="hoja-pedidos" class="hoja-imprimible">
+                <!-- CABECERA ESTILO FOTO OFICIAL -->
+                <div style="border: 2px solid #000; background-color: #fff; font-family: Arial, sans-serif; font-size: 11px; font-weight: bold; text-align: center; margin-bottom: 4px;">
+                    <div style="background-color: #000; color: #fff; padding: 4px; font-size: 11px; letter-spacing: 0.5px;">GRUPO BOTANERO ALTEÑO, S.A. DE C.V.</div>
+                    <div style="border-top: 1px solid #000; border-bottom: 1px solid #000; display: flex; justify-content: space-between; align-items: center; padding: 4px 8px;">
+                        <span style="font-size: 10px; color: #333; text-align: left;">FORMATO DE PEDIDO SUCURSALES</span>
+                        <div style="display: flex; align-items: center;">
+                            <span style="margin-right: 6px; font-size: 11px; font-weight: 900; color: #000;">SEMANA:</span>
+                            <input type="text" id="input-semana-ped" class="caja-semana-input" value="" placeholder="Escribe aquí...">
+                        </div>
+                    </div>
+                    <div style="display: flex; border-bottom: 1px solid #000;">
+                        <div style="flex: 1; border-right: 1px solid #000; padding: 3px 8px; text-align: left; font-size: 10px;">
+                            SUCURSAL: <span style="font-weight: 900;">TEPIC</span>
+                        </div>
+                        <div style="flex: 1; padding: 3px 8px; text-align: left; font-size: 10px;">
+                            ALMACÉN: <span style="font-weight: 900;">TEPIC</span>
+                        </div>
+                    </div>
+                    <div style="display: flex;">
+                        <div style="flex: 1; border-right: 1px solid #000; padding: 3px 8px; text-align: left; font-size: 10px;">
+                            SUPERVISOR: <span style="font-weight: 900;">CALIXTO DE LA LUZ LAVALLE</span>
+                        </div>
+                        <div style="flex: 1; padding: 3px 8px; text-align: left; font-size: 10px;">
+                            VENDEDOR: <span id="lbl-usuario-ped" style="font-weight: 900; text-transform: uppercase;">JUAN CHÁVEZ ROBLES</span>
+                        </div>
+                    </div>
+                </div>
+                <table class="product-table">
+                    <thead>
+                        <tr>
+                            <th class="col-num">#</th>
+                            <th class="col-prod">PRODUCTO</th>
+                            <th class="col-cajas">CAJAS</th>
+                            <th class="col-precio">PRECIO</th>
+                            <th class="col-total">TOTAL</th>
+                        </tr>
+                    </thead>
+                    <tbody id="list-pedidos"></tbody>
+                    <tbody>
+                        <tr class="fila-totales">
+                            <td colspan="4" style="text-align: left; padding-left: 8px;">TOTAL PEDIDO: <span id="tot-cajas-ped">0</span> CAJAS</td>
+                            <td class="tot-valor-final col-total" style="padding-right:8px;">$<span id="tot-dinero-ped">0</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div style="background-color: #000; color: #ffca28; padding: 10px 12px; font-weight: 900; font-size: 15px; display: flex; justify-content: space-between; border-top: 1px solid #333;">
+                    <span>TOTAL ABAJO: <span id="tot-cajas-ped-abajo" style="color:#fff;">0</span> CAJAS</span>
+                    <span>$<span id="tot-dinero-ped-abajo">0</span></span>
+                </div>
+                <div class="notas-area">
+                    <textarea id="notas-pedidos" placeholder="Escribe notas extra aquí (ej. * Dos de 400G = ...)"></textarea>
+                </div>
+            </div>
+
+            <div class="botones-container">
+                <button class="btn btn-verde" onclick="iniciarTutorialWhatsApp('pedidos')">💬 Enviar por WhatsApp</button>
+                <button class="btn btn-azul" onclick="procesarImagen('pedidos', 'descargar')">📥 Descargar Foto</button>
+                <button class="btn btn-rojo" onclick="procesarPDF('pedidos', 'descargar')">PDF</button>
+                <button class="btn btn-historial" onclick="abrirHistorial()">📜 Ver Historial</button>
+                <button class="btn btn-blanco" onclick="agregarNuevoProducto('pedidos')">+ Producto</button>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 2: DEVOLUCIONES -->
+        <div id="seccion-devoluciones" class="tab-content">
+            <div class="buscador-container">
+                <input type="text" id="busqueda-devoluciones" placeholder="🔍 Buscar producto o gramos..." onkeyup="filtrarTabla('busqueda-devoluciones', 'list-devoluciones')">
+            </div>
+
+            <div id="hoja-devoluciones" class="hoja-imprimible">
+                <!-- CABECERA ESTILO FOTO OFICIAL -->
+                <div style="border: 2px solid #000; background-color: #fff; font-family: Arial, sans-serif; font-size: 11px; font-weight: bold; text-align: center; margin-bottom: 4px;">
+                    <div style="background-color: #000; color: #fff; padding: 4px; font-size: 11px; letter-spacing: 0.5px;">GRUPO BOTANERO ALTEÑO, S.A. DE C.V.</div>
+                    <div style="border-top: 1px solid #000; border-bottom: 1px solid #000; display: flex; justify-content: space-between; align-items: center; padding: 4px 8px;">
+                        <span style="font-size: 10px; color: #333; text-align: left;">FORMATO DE PAGO DE DEVOLUCIONES SUCURSALES</span>
+                        <div style="display: flex; align-items: center;">
+                            <span style="margin-right: 6px; font-size: 11px; font-weight: 900; color: #000;">SEMANA:</span>
+                            <input type="text" id="input-semana-dev" class="caja-semana-input" value="" placeholder="Escribe aquí...">
+                        </div>
+                    </div>
+                    <div style="display: flex; border-bottom: 1px solid #000;">
+                        <div style="flex: 1; border-right: 1px solid #000; padding: 3px 8px; text-align: left; font-size: 10px;">
+                            SUCURSAL: <span style="font-weight: 900;">TEPIC</span>
+                        </div>
+                        <div style="flex: 1; padding: 3px 8px; text-align: left; font-size: 10px;">
+                            ALMACÉN: <span style="font-weight: 900;">TEPIC</span>
+                        </div>
+                    </div>
+                    <div style="display: flex;">
+                        <div style="flex: 1; border-right: 1px solid #000; padding: 3px 8px; text-align: left; font-size: 10px;">
+                            SUPERVISOR: <span style="font-weight: 900;">CALIXTO DE LA LUZ LAVALLE</span>
+                        </div>
+                        <div style="flex: 1; padding: 3px 8px; text-align: left; font-size: 10px;">
+                            VENDEDOR: <span id="lbl-usuario-dev" style="font-weight: 900; text-transform: uppercase;">JUAN CHÁVEZ ROBLES</span>
+                        </div>
+                    </div>
+                </div>
+                <table class="product-table">
+                    <thead>
+                        <tr>
+                            <th class="col-num">#</th>
+                            <th class="col-prod">PRODUCTO</th>
+                            <th class="col-cajas">CANT</th>
+                            <th class="col-precio">PRECIO</th>
+                            <th class="col-total">TOTAL</th>
+                        </tr>
+                    </thead>
+                    <tbody id="list-devoluciones"></tbody>
+                    <tbody>
+                        <tr class="fila-totales">
+                            <td colspan="4" style="text-align: left; padding-left: 8px;">TOTAL UNIDADES: <span id="tot-cajas-dev">0</span></td>
+                            <td class="tot-valor-final col-total" style="padding-right:8px;">$<span id="tot-dinero-dev">0</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div style="background-color: #000; color: #ffca28; padding: 10px 12px; font-weight: 900; font-size: 15px; display: flex; justify-content: space-between; border-top: 1px solid #333;">
+                    <span>TOTAL ABAJO: <span id="tot-cajas-dev-abajo" style="color:#fff;">0</span> UNIDADES</span>
+                    <span>$<span id="tot-dinero-dev-abajo">0</span></span>
+                </div>
+                <div class="notas-area">
+                    <textarea id="notas-devoluciones" placeholder="Notas/Firma..."></textarea>
+                </div>
+            </div>
+
+            <div class="botones-container">
+                <button class="btn btn-verde" onclick="iniciarTutorialWhatsApp('devoluciones')">💬 Enviar por WhatsApp</button>
+                <button class="btn btn-azul" onclick="procesarImagen('devoluciones', 'descargar')">📥 Descargar Foto</button>
+                <button class="btn btn-rojo" onclick="procesarPDF('devoluciones', 'descargar')">PDF</button>
+                <button class="btn btn-historial" onclick="abrirHistorial()">📜 Ver Historial</button>
+                <button class="btn btn-blanco" onclick="agregarNuevoProducto('devoluciones')">+ Producto</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- VENTANAS MODALES -->
+    <div id="modal-tutorial-wa" class="modal">
+        <div class="modal-contenido">
+            <h3>💬 Enviar en HD por WhatsApp</h3>
+            
+            <div id="paso-wa-1" class="paso-tutorial activo">
+                <p style="font-size: 13px; font-weight: bold; color: #333;">Paso 1: Selecciona el ícono de <strong>WhatsApp</strong></p>
+                <img src="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='200' viewBox='0 0 280 200'%3E%3Crect width='280' height='200' fill='%23f0f2f5'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-size='16' fill='%23333'%3EPaso 1: Ícono WhatsApp%3C/text%3E%3C/svg%3E" alt="Paso 1">
+                <button class="btn-modal-acc" onclick="cambiarPasoWa(2)">Siguiente ➡️</button>
+            </div>
+
+            <div id="paso-wa-2" class="paso-tutorial">
+                <p style="font-size: 13px; font-weight: bold; color: #333;">Paso 2: Elige tu chat o contacto</p>
+                <img src="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='200' viewBox='0 0 280 200'%3E%3Crect width='280' height='200' fill='%23f0f2f5'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-size='16' fill='%23333'%3EPaso 2: Elegir Chat%3C/text%3E%3C/svg%3E" alt="Paso 2">
+                <button class="btn-modal-acc" onclick="cambiarPasoWa(3)">Siguiente ➡️</button>
+            </div>
+
+            <div id="paso-wa-3" class="paso-tutorial">
+                <p style="font-size: 13px; font-weight: bold; color: #333;">Paso 3: Presiona el botón <strong>HD</strong> arriba</p>
+                <img src="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='200' viewBox='0 0 280 200'%3E%3Crect width='280' height='200' fill='%23f0f2f5'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-size='16' fill='%23333'%3EPaso 3: Botón HD%3C/text%3E%3C/svg%3E" alt="Paso 3">
+                <button class="btn-modal-acc" onclick="cambiarPasoWa(4)">Siguiente ➡️</button>
+            </div>
+
+            <div id="paso-wa-4" class="paso-tutorial">
+                <p style="font-size: 13px; font-weight: bold; color: #333;">¡Listo! Selecciona Calidad HD y envía tu formato</p>
+                <img src="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='200' viewBox='0 0 280 200'%3E%3Crect width='280' height='200' fill='%23f0f2f5'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-size='16' fill='%23333'%3EPaso 4: Enviar HD%3C/text%3E%3C/svg%3E" alt="Paso 4">
+                <button class="btn-modal-acc" style="background-color: #25D366;" onclick="ejecutarEnvioRealWhatsApp()">🚀 ¡Enviar ahora a WhatsApp!</button>
+            </div>
+            <br><button class="btn-cerrar-sencillo" onclick="cerrarTutorialWa()">Cancelar ✖</button>
+        </div>
+    </div>
+
+    <!-- VENTANA MODAL PARA EL HISTORIAL -->
+    <div id="modal-historial" class="modal" onclick="cerrarHistorialFuera(event)">
+        <div class="modal-contenido">
+            <h3>📜 Historial de Registros</h3>
+            <p style="font-size: 13px; color: #555;">Aquí se guardan automáticamente tus respaldos generados:</p>
+            <div id="lista-historial-contenido" style="text-align: left; max-height: 280px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; margin-top: 10px; border-radius: 5px; font-size: 13px;">
+            </div>
+            <button class="btn-cerrar-modal" style="background-color: #d1121c; width: 100%; border:none; padding:10px; color:white; border-radius:5px; font-weight:bold; margin-top:10px; cursor:pointer;" onclick="limpiarHistorial()">Borrar Historial</button>
+            <button class="btn-cerrar-sencillo" onclick="cerrarHistorial()" style="width: 100%;">Cerrar ✖</button>
+        </div>
+    </div>
+
+    <!-- CONEXIÓN CON TU ARCHIVO JAVASCRIPT -->
+    <script src="pedidos_express.js"></script>
+</body>
+</html>
