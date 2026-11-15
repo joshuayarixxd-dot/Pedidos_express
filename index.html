@@ -109,7 +109,7 @@
             text-align: center;
         }
 
-        /* DISEÑO DE LAS HOJAS (TAMAÑO ORIGINAL 850PX SIN BORDES FEOS) */
+        /* DISEÑO BASE DE LAS HOJAS */
         .tab-content { display: none; padding: 10px; }
         .tab-content.activa { display: block; }
 
@@ -121,7 +121,46 @@
             font-family: 'Arial', sans-serif;
         }
 
-        /* RECUADRO EXCLUSIVO PARA SEMANA EN CABECERA */
+        /* MODO TICKET AL GENERAR FOTO DE PEDIDOS (480PX ANCHO TIPO RECIBO WHATSAPP) */
+        #hoja-pedidos.modo-ticket {
+            width: 480px !important;
+            max-width: 480px !important;
+            margin: 0 !important;
+            background-color: #ffffff !important;
+        }
+        #hoja-pedidos.modo-ticket .product-table th {
+            font-size: 11px;
+            padding: 6px 4px;
+        }
+        #hoja-pedidos.modo-ticket .product-table td {
+            font-size: 11.5px;
+            padding: 4px 4px;
+            white-space: nowrap;
+        }
+        #hoja-pedidos.modo-ticket .product-table th.col-num,
+        #hoja-pedidos.modo-ticket .product-table td.col-num {
+            width: 6%;
+            padding-left: 8px;
+        }
+        #hoja-pedidos.modo-ticket .product-table th.col-prod,
+        #hoja-pedidos.modo-ticket .product-table td.col-prod {
+            width: 52%;
+        }
+        #hoja-pedidos.modo-ticket .product-table th.col-cajas,
+        #hoja-pedidos.modo-ticket .product-table td.col-cajas {
+            width: 13%;
+        }
+        #hoja-pedidos.modo-ticket .product-table th.col-precio,
+        #hoja-pedidos.modo-ticket .product-table td.col-precio {
+            width: 14%;
+        }
+        #hoja-pedidos.modo-ticket .product-table th.col-total,
+        #hoja-pedidos.modo-ticket .product-table td.col-total {
+            width: 15%;
+            padding-right: 8px;
+        }
+
+        /* RECUADRO EXCLUSIVO PARA SEMANA EN DEVOLUCIONES */
         .caja-semana-input {
             width: 110px;
             padding: 3px 6px;
@@ -158,27 +197,28 @@
             border: none;
         }
         /* COLUMNAS REACOMODADAS HACIA EL CENTRO */
-        .product-table th.col-num { width: 5%; text-align: left; padding-left: 8px; }
+        .product-table th.col-num { width: 5%; text-align: left; padding-left: 10px; }
         .product-table th.col-prod { width: 45%; text-align: left; }
         .product-table th.col-cajas { width: 16%; text-align: center; }
         .product-table th.col-precio { width: 16%; text-align: center; }
-        .product-table th.col-total { width: 18%; text-align: center; padding-right: 8px; }
+        .product-table th.col-total { width: 18%; text-align: center; padding-right: 10px; }
 
+        /* FILAS LIMPIAS SIN RAYAS NEGRAS */
         .product-table td {
             border: none;
-            border-bottom: 1px solid #e0e0e0;
-            padding: 4px 6px;
+            border-bottom: 1px solid #ececec;
+            padding: 5px 6px;
             font-size: 13px;
             font-weight: 900;
             color: #000;
             vertical-align: middle;
         }
         
-        .product-table td.col-num { text-align: left; padding-left: 8px; }
+        .product-table td.col-num { text-align: left; padding-left: 10px; }
         .product-table td.col-prod { text-align: left; }
         .product-table td.col-cajas { text-align: center; }
         .product-table td.col-precio { text-align: center; }
-        .product-table td.col-total { text-align: center; padding-right: 8px; }
+        .product-table td.col-total { text-align: center; padding-right: 10px; }
 
         .product-table tr:nth-child(even) { background-color: #f5f5f5; }
         .product-table tr:nth-child(odd) { background-color: #ffffff; }
@@ -217,7 +257,7 @@
             border: none;
         }
         .fila-totales td {
-            padding: 10px 8px;
+            padding: 10px 10px;
             color: #ffffff !important;
             border: none;
         }
@@ -316,40 +356,20 @@
             <button class="tab-btn" id="btn-tab-devoluciones" onclick="cambiarPestana('devoluciones')">🔙 DEVOLUCIONES</button>
         </div>
 
-        <!-- SECCIÓN 1: PEDIDOS -->
+        <!-- SECCIÓN 1: PEDIDOS (CAJAS) -->
         <div id="seccion-pedidos" class="tab-content activa">
             <div class="buscador-container">
                 <input type="text" id="busqueda-pedidos" placeholder="🔍 Buscar producto o gramos..." onkeyup="filtrarTabla('busqueda-pedidos', 'list-pedidos')">
             </div>
 
             <div id="hoja-pedidos" class="hoja-imprimible">
-                <!-- CABECERA ESTILO FOTO OFICIAL -->
-                <div style="border: 2px solid #000; background-color: #fff; font-family: Arial, sans-serif; font-size: 11px; font-weight: bold; text-align: center; margin-bottom: 4px;">
-                    <div style="background-color: #000; color: #fff; padding: 4px; font-size: 11px; letter-spacing: 0.5px;">GRUPO BOTANERO ALTEÑO, S.A. DE C.V.</div>
-                    <div style="border-top: 1px solid #000; border-bottom: 1px solid #000; display: flex; justify-content: space-between; align-items: center; padding: 4px 8px;">
-                        <span style="font-size: 10px; color: #333; text-align: left;">FORMATO DE PEDIDO SUCURSALES</span>
-                        <div style="display: flex; align-items: center;">
-                            <span style="margin-right: 6px; font-size: 11px; font-weight: 900; color: #000;">SEMANA:</span>
-                            <input type="text" id="input-semana-ped" class="caja-semana-input" value="" placeholder="Escribe aquí...">
-                        </div>
-                    </div>
-                    <div style="display: flex; border-bottom: 1px solid #000;">
-                        <div style="flex: 1; border-right: 1px solid #000; padding: 3px 8px; text-align: left; font-size: 10px;">
-                            SUCURSAL: <span style="font-weight: 900;">TEPIC</span>
-                        </div>
-                        <div style="flex: 1; padding: 3px 8px; text-align: left; font-size: 10px;">
-                            ALMACÉN: <span style="font-weight: 900;">TEPIC</span>
-                        </div>
-                    </div>
-                    <div style="display: flex;">
-                        <div style="flex: 1; border-right: 1px solid #000; padding: 3px 8px; text-align: left; font-size: 10px;">
-                            SUPERVISOR: <span style="font-weight: 900;">CALIXTO DE LA LUZ LAVALLE</span>
-                        </div>
-                        <div style="flex: 1; padding: 3px 8px; text-align: left; font-size: 10px;">
-                            VENDEDOR: <span id="lbl-usuario-ped" style="font-weight: 900; text-transform: uppercase;">JUAN CHÁVEZ ROBLES</span>
-                        </div>
-                    </div>
+                <!-- CABECERA NEGRA ESTILO TICKET -->
+                <div style="background-color: #000000; color: #ffffff; text-align: center; padding: 14px 8px; font-family: Arial, sans-serif;">
+                    <div style="font-size: 18px; font-weight: 900; letter-spacing: 0.5px; margin-bottom: 5px;">HOJA COMPLETA DEL PEDIDO - TEPIC</div>
+                    <div style="font-size: 14px; font-weight: 900; color: #ffca28;">NUEVO PEDIDO - <span id="tot-cajas-ped-arriba">0</span> CAJAS - $<span id="tot-dinero-ped-arriba">0</span></div>
                 </div>
+                <span id="lbl-usuario-ped" style="display:none;">JUAN CHÁVEZ ROBLES</span>
+
                 <table class="product-table">
                     <thead>
                         <tr>
@@ -361,17 +381,17 @@
                         </tr>
                     </thead>
                     <tbody id="list-pedidos"></tbody>
-                    <tbody>
-                        <tr class="fila-totales">
-                            <td colspan="4" style="text-align: left; padding-left: 8px;">TOTAL PEDIDO: <span id="tot-cajas-ped">0</span> CAJAS</td>
-                            <td class="tot-valor-final col-total" style="padding-right:8px;">$<span id="tot-dinero-ped">0</span></td>
-                        </tr>
-                    </tbody>
                 </table>
-                <div style="background-color: #000; color: #ffca28; padding: 10px 12px; font-weight: 900; font-size: 15px; display: flex; justify-content: space-between; border-top: 1px solid #333;">
-                    <span>TOTAL ABAJO: <span id="tot-cajas-ped-abajo" style="color:#fff;">0</span> CAJAS</span>
-                    <span>$<span id="tot-dinero-ped-abajo">0</span></span>
+
+                <!-- BARRAS INFERIORES NEGRAS ESTILO TICKET -->
+                <div style="background-color: #000000; color: #ffffff; padding: 11px 12px; font-weight: 900; font-size: 14px; display: flex; justify-content: space-between; align-items: center;">
+                    <span>TOTAL PEDIDO: <span id="tot-cajas-ped">0</span> CAJAS</span>
+                    <span>$<span id="tot-dinero-ped">0</span></span>
                 </div>
+                <div style="background-color: #000000; color: #ffca28; padding: 11px 12px; font-weight: 900; font-size: 15px; text-align: center; border-top: 1px solid #222;">
+                    NUEVO PEDIDO - <span id="tot-cajas-ped-abajo">0</span> CAJAS - $<span id="tot-dinero-ped-abajo">0</span>
+                </div>
+
                 <div class="notas-area">
                     <textarea id="notas-pedidos" placeholder="Escribe notas extra aquí (ej. * Dos de 400G = ...)"></textarea>
                 </div>
@@ -386,7 +406,7 @@
             </div>
         </div>
 
-        <!-- SECCIÓN 2: DEVOLUCIONES -->
+        <!-- SECCIÓN 2: DEVOLUCIONES (COMPLETAMENTE INTACTA) -->
         <div id="seccion-devoluciones" class="tab-content">
             <div class="buscador-container">
                 <input type="text" id="busqueda-devoluciones" placeholder="🔍 Buscar producto o gramos..." onkeyup="filtrarTabla('busqueda-devoluciones', 'list-devoluciones')">
@@ -433,8 +453,8 @@
                     <tbody id="list-devoluciones"></tbody>
                     <tbody>
                         <tr class="fila-totales">
-                            <td colspan="4" style="text-align: left; padding-left: 8px;">TOTAL UNIDADES: <span id="tot-cajas-dev">0</span></td>
-                            <td class="tot-valor-final col-total" style="padding-right:8px;">$<span id="tot-dinero-dev">0</span></td>
+                            <td colspan="4" style="text-align: left; padding-left: 10px;">TOTAL UNIDADES: <span id="tot-cajas-dev">0</span></td>
+                            <td class="tot-valor-final col-total" style="padding-right:10px;">$<span id="tot-dinero-dev">0</span></td>
                         </tr>
                     </tbody>
                 </table>

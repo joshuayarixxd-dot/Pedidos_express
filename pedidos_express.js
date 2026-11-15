@@ -100,8 +100,8 @@ function ingresarApp(nombrePersonalizado) {
     document.getElementById('app-section').style.display = 'block';
     
     let nombreMostrar = nombrePersonalizado || "JUAN CHÁVEZ ROBLES";
-    document.getElementById('lbl-usuario-ped').innerText = nombreMostrar;
-    document.getElementById('lbl-usuario-dev').innerText = nombreMostrar;
+    if (document.getElementById('lbl-usuario-ped')) document.getElementById('lbl-usuario-ped').innerText = nombreMostrar;
+    if (document.getElementById('lbl-usuario-dev')) document.getElementById('lbl-usuario-dev').innerText = nombreMostrar;
 
     renderizarTabla('pedidos'); renderizarTabla('devoluciones');
 }
@@ -256,6 +256,10 @@ function calcularTotales(tipo) {
     if (tipo === 'pedidos') {
         document.getElementById('tot-cajas-ped').innerText = totalCant;
         document.getElementById('tot-dinero-ped').innerText = formatearDinero(totalDinero);
+        if(document.getElementById('tot-cajas-ped-arriba')) {
+            document.getElementById('tot-cajas-ped-arriba').innerText = totalCant;
+            document.getElementById('tot-dinero-ped-arriba').innerText = formatearDinero(totalDinero);
+        }
         if(document.getElementById('tot-cajas-ped-abajo')) {
             document.getElementById('tot-cajas-ped-abajo').innerText = totalCant;
             document.getElementById('tot-dinero-ped-abajo').innerText = formatearDinero(totalDinero);
@@ -271,7 +275,7 @@ function calcularTotales(tipo) {
 }
 
 /* =======================================================
-   MOTOR DE IMAGEN (850PX SIN BORDES Y COLUMNAS CENTRADAS)
+   MOTOR DE IMAGEN (480PX TICKET EN PEDIDOS / 850PX EN DEVOLUCIONES)
 ======================================================== */
 function procesarImagen(tipo, accion) {
     const divId = tipo === 'pedidos' ? 'hoja-pedidos' : 'hoja-devoluciones';
@@ -294,6 +298,7 @@ function procesarImagen(tipo, accion) {
 
     const inputs = elemento.querySelectorAll('input[type="number"]');
     const originalesInputs = [];
+    const fontSizeDato = tipo === 'pedidos' ? '11.5px' : '13px';
     
     inputs.forEach(input => {
         const val = input.value;
@@ -301,28 +306,34 @@ function procesarImagen(tipo, accion) {
         originalesInputs.push({ el: input, val: val, parent: parent });
         
         if(val && parseInt(val) > 0) {
-            parent.innerHTML = `<div style="font-size:13px; font-weight:900; text-align:center; color:#000;">${val}</div>`;
+            parent.innerHTML = `<div style="font-size:${fontSizeDato}; font-weight:900; text-align:center; color:#000;">${val}</div>`;
         } else {
-            parent.innerHTML = `<div style="font-size:13px; font-weight:900; text-align:center; color:transparent;">-</div>`;
+            parent.innerHTML = `<div style="font-size:${fontSizeDato}; font-weight:900; text-align:center; color:transparent;">-</div>`;
         }
     });
 
     const notasArea = elemento.querySelector('.notas-area');
     const textarea = notasArea.querySelector('textarea');
     const valorNotas = textarea.value;
-    
-    let htmlNotasTemp = '';
-    if (valorNotas.trim() !== '') {
-        htmlNotasTemp = `<div class="notas-renderizadas">${valorNotas}</div>`;
-    }
     const contenidoOriginalNotas = notasArea.innerHTML;
-    notasArea.innerHTML = htmlNotasTemp;
+    
+    if (valorNotas.trim() !== '') {
+        notasArea.innerHTML = `<div class="notas-renderizadas">${valorNotas}</div>`;
+    } else {
+        notasArea.style.display = 'none';
+    }
 
     const originalWidth = elemento.style.width;
     const originalMaxWidth = elemento.style.maxWidth;
     const originalMargin = elemento.style.margin;
-    elemento.style.width = '850px';
-    elemento.style.maxWidth = '850px';
+
+    // Ancho tipo ticket (480px) solo para Pedidos; Devoluciones intacto (850px)
+    const anchoCaptura = tipo === 'pedidos' ? 480 : 850;
+    if (tipo === 'pedidos') {
+        elemento.classList.add('modo-ticket');
+    }
+    elemento.style.width = anchoCaptura + 'px';
+    elemento.style.maxWidth = anchoCaptura + 'px';
     elemento.style.margin = '0';
     elemento.style.fontFamily = 'Arial, Helvetica, sans-serif';
 
@@ -332,6 +343,7 @@ function procesarImagen(tipo, accion) {
     const nombreArchivo = tipo === 'pedidos' ? `Pedido_Coyotes_${dia}-${mes}.png` : `Devoluciones_Coyotes_${dia}-${mes}.png`;
 
     const restaurar = () => {
+        elemento.classList.remove('modo-ticket');
         elemento.style.width = originalWidth;
         elemento.style.maxWidth = originalMaxWidth;
         elemento.style.margin = originalMargin;
@@ -352,6 +364,7 @@ function procesarImagen(tipo, accion) {
             item.parent.appendChild(item.el);
         });
 
+        notasArea.style.display = '';
         notasArea.innerHTML = contenidoOriginalNotas;
         notasArea.querySelector('textarea').value = valorNotas;
     };
@@ -362,8 +375,8 @@ function procesarImagen(tipo, accion) {
         scrollX: 0,
         scrollY: 0, 
         backgroundColor: '#ffffff',
-        width: 850,
-        windowWidth: 850,
+        width: anchoCaptura,
+        windowWidth: anchoCaptura,
         logging: false
     }).then(canvas => {
         canvas.toBlob(function(blob) {
@@ -414,13 +427,13 @@ function procesarPDF(tipo, accion) {
     const notasArea = elemento.querySelector('.notas-area');
     const textarea = notasArea.querySelector('textarea');
     const valorNotas = textarea.value;
-    
-    let htmlNotasTemp = '';
-    if (valorNotas.trim() !== '') {
-        htmlNotasTemp = `<div class="notas-renderizadas">${valorNotas}</div>`;
-    }
     const contenidoOriginalNotas = notasArea.innerHTML;
-    notasArea.innerHTML = htmlNotasTemp;
+    
+    if (valorNotas.trim() !== '') {
+        notasArea.innerHTML = `<div class="notas-renderizadas">${valorNotas}</div>`;
+    } else {
+        notasArea.style.display = 'none';
+    }
 
     const originalWidth = elemento.style.width;
     const originalMaxWidth = elemento.style.maxWidth;
@@ -452,6 +465,7 @@ function procesarPDF(tipo, accion) {
             input.style.backgroundColor = 'transparent';
         });
 
+        notasArea.style.display = '';
         notasArea.innerHTML = contenidoOriginalNotas;
         notasArea.querySelector('textarea').value = valorNotas;
     };
